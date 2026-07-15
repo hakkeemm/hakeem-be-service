@@ -15,8 +15,9 @@ public class EmailService : IEmailService
         _config = config;
     }
 
-    public async Task SendEmailVerificationAsync(string toEmail, string userName, string verificationLink, string culture = "ar")
+    public async Task SendEmailVerificationAsync(string toEmail, string userName, string verificationCode, int expireSeconds, string culture = "ar")
     {
+        int expireMinutes = expireSeconds / 60;
         var emailMessage = new MimeMessage();
         var fromAddress = _config["EmailSettings:FromAddress"] ?? "noreply@hakeem.app";
         emailMessage.From.Add(new MailboxAddress("Hakeem", fromAddress));
@@ -36,10 +37,11 @@ public class EmailService : IEmailService
                         </div>
                         <div style='padding: 40px 32px;'>
                             <h2 style='margin-top: 0; font-size: 24px; color: #1A73E8;'>أهلاً {userName}،</h2>
-                            <p style='font-size: 16px; margin-bottom: 24px;'>شكراً لانضمامك إلى <strong>حكيم</strong>. نحن سعداء بوجودك معنا! لإكمال عملية التسجيل، يرجى تأكيد بريدك الإلكتروني بالضغط على الزر أدناه.</p>
+                            <p style='font-size: 16px; margin-bottom: 24px;'>شكراً لانضمامك إلى <strong>حكيم</strong>. نحن سعداء بوجودك معنا! لإكمال عملية التسجيل، يرجى استخدام رمز التحقق أدناه:</p>
                             <div style='text-align: center; margin: 32px 0;'>
-                                <a href='{verificationLink}' style='background-color: #1A73E8; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-size: 16px; font-weight: bold; display: inline-block;'>تأكيد البريد الإلكتروني</a>
+                                <div style='background-color: #f0f4f8; border: 1px dashed #1A73E8; color: #1A73E8; padding: 20px 32px; border-radius: 6px; font-size: 32px; font-weight: bold; display: inline-block; letter-spacing: 4px;'>{verificationCode}</div>
                             </div>
+                            <p style='font-size: 14px; color: #555555; text-align: center;'>هذا الرمز صالح لمدة <strong>{expireMinutes} دقائق</strong>.</p>
                             <p style='font-size: 14px; color: #666666; margin-top: 32px; border-top: 1px solid #eeeeee; padding-top: 24px;'>إذا لم تقم بإنشاء حساب في حكيم، يرجى تجاهل هذه الرسالة بأمان.</p>
                         </div>
                     </div>
@@ -56,10 +58,11 @@ public class EmailService : IEmailService
                         </div>
                         <div style='padding: 40px 32px;'>
                             <h2 style='margin-top: 0; font-size: 24px; color: #1A73E8;'>Hello {userName},</h2>
-                            <p style='font-size: 16px; margin-bottom: 24px;'>Thank you for joining <strong>Hakeem</strong>. We are thrilled to have you! To complete your registration, please confirm your email address by clicking the button below.</p>
+                            <p style='font-size: 16px; margin-bottom: 24px;'>Thank you for joining <strong>Hakeem</strong>. We are thrilled to have you! To complete your registration, please use the verification code below:</p>
                             <div style='text-align: center; margin: 32px 0;'>
-                                <a href='{verificationLink}' style='background-color: #1A73E8; color: #ffffff; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-size: 16px; font-weight: bold; display: inline-block;'>Confirm Email</a>
+                                <div style='background-color: #f0f4f8; border: 1px dashed #1A73E8; color: #1A73E8; padding: 20px 32px; border-radius: 6px; font-size: 32px; font-weight: bold; display: inline-block; letter-spacing: 4px;'>{verificationCode}</div>
                             </div>
+                            <p style='font-size: 14px; color: #555555; text-align: center;'>This code is valid for <strong>{expireMinutes} minutes</strong>.</p>
                             <p style='font-size: 14px; color: #666666; margin-top: 32px; border-top: 1px solid #eeeeee; padding-top: 24px;'>If you did not create a Hakeem account, please safely ignore this email.</p>
                         </div>
                     </div>

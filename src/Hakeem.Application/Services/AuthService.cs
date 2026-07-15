@@ -6,6 +6,7 @@ using Hakeem.Domain.Entities;
 using Hakeem.Domain.Enums;
 using Hakeem.Domain.Interfaces;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using System.Text.Json;
 
 namespace Hakeem.Application.Services;
@@ -56,23 +57,35 @@ public class AuthService : IAuthService
 
         await _userManager.AddToRoleAsync(user, UserRole.Patient.ToString());
 
-        var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-        var verificationLink = $"https://hakeem.app/verify-email?userId={user.Id}&token={Uri.EscapeDataString(token)}";
+        var random = new Random();
+        var code = random.Next(100000, 999999).ToString();
+        var expireSeconds = _configuration.GetValue<int>("Authentication:VerificationCodeExpirationSeconds", 300);
         
-        await _emailService.SendEmailVerificationAsync(user.Email, user.FullName, verificationLink);
+        user.VerificationCode = code;
+        user.VerificationCodeExpiresAt = DateTime.UtcNow.AddSeconds(expireSeconds);
+        await _userManager.UpdateAsync(user);
+
+        await _emailService.SendEmailVerificationAsync(user.Email, user.FullName, code, expireSeconds);
 
         return Result.Success();
     }
 
     public async Task<Result<AuthResponseDto>> VerifyEmailAsync(VerifyEmailRequestDto request)
     {
-        var user = await _userManager.FindByIdAsync(request.UserId);
+        var user = await _userManager.FindByEmailAsync(request.Email);
         if (user == null)
             return Result.Failure<AuthResponseDto>(new Error("Auth.UserNotFound", "User not found."));
 
-        var result = await _userManager.ConfirmEmailAsync(user, request.Token);
-        if (!result.Succeeded)
-            return Result.Failure<AuthResponseDto>(new Error("Auth.InvalidToken", "Invalid or expired verification token."));
+        if (user.VerificationCode != request.Code)
+            return Result.Failure<AuthResponseDto>(new Error("Auth.InvalidCode", "Invalid verification code."));
+
+        if (user.VerificationCodeExpiresAt < DateTime.UtcNow)
+            return Result.Failure<AuthResponseDto>(new Error("Auth.CodeExpired", "Verification code has expired."));
+
+        user.EmailConfirmed = true;
+        user.VerificationCode = null;
+        user.VerificationCodeExpiresAt = null;
+        await _userManager.UpdateAsync(user);
 
         return Result.Success(await GenerateAuthResponseAsync(user));
     }
@@ -86,10 +99,15 @@ public class AuthService : IAuthService
         if (user.EmailConfirmed)
             return Result.Failure(new Error("Auth.AlreadyVerified", "Email is already verified."));
 
-        var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-        var verificationLink = $"https://hakeem.app/verify-email?userId={user.Id}&token={Uri.EscapeDataString(token)}";
+        var random = new Random();
+        var code = random.Next(100000, 999999).ToString();
+        var expireSeconds = _configuration.GetValue<int>("Authentication:VerificationCodeExpirationSeconds", 300);
         
-        await _emailService.SendEmailVerificationAsync(user.Email!, user.FullName, verificationLink);
+        user.VerificationCode = code;
+        user.VerificationCodeExpiresAt = DateTime.UtcNow.AddSeconds(expireSeconds);
+        await _userManager.UpdateAsync(user);
+
+        await _emailService.SendEmailVerificationAsync(user.Email!, user.FullName, code, expireSeconds);
         
         return Result.Success();
     }
