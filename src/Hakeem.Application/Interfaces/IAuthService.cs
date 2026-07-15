@@ -1,14 +1,15 @@
 using Hakeem.Application.DTOs.Auth;
+using Hakeem.Domain.Common;
 
 namespace Hakeem.Application.Interfaces;
 
 public interface IAuthService
 {
-    Task RegisterAsync(RegisterRequestDto request);
-    Task<AuthResponseDto> VerifyEmailAsync(VerifyEmailRequestDto request);
-    Task ResendVerificationAsync(ResendVerificationRequestDto request);
-    Task<AuthResponseDto> LoginAsync(LoginRequestDto request);
-    Task<AuthResponseDto> GoogleLoginAsync(GoogleLoginRequestDto request);
-    Task<AuthResponseDto> RefreshTokenAsync(RefreshTokenRequestDto request);
-    Task LogoutAsync(string userId, string refreshToken);
+    Task<Result> RegisterAsync(RegisterRequestDto request);
+    Task<Result<AuthResponseDto>> VerifyEmailAsync(VerifyEmailRequestDto request);
+    Task<Result> ResendVerificationAsync(ResendVerificationRequestDto request);
+    Task<Result<AuthResponseDto>> LoginAsync(LoginRequestDto request);
+    Task<Result<AuthResponseDto>> GoogleLoginAsync(GoogleLoginRequestDto request);
+    Task<Result<AuthResponseDto>> RefreshTokenAsync(RefreshTokenRequestDto request);
+    Task<Result> LogoutAsync(string userId, string refreshToken);
 }
