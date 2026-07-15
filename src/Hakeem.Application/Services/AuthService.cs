@@ -6,6 +6,7 @@ using Hakeem.Domain.Entities;
 using Hakeem.Domain.Enums;
 using Hakeem.Domain.Interfaces;
 using Microsoft.AspNetCore.Identity;
+using System.Text.Json;
 
 namespace Hakeem.Application.Services;
 
@@ -15,17 +16,20 @@ public class AuthService : IAuthService
     private readonly ITokenService _tokenService;
     private readonly IEmailService _emailService;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly Microsoft.Extensions.Configuration.IConfiguration _configuration;
 
     public AuthService(
         UserManager<ApplicationUser> userManager,
         ITokenService tokenService,
         IEmailService emailService,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        Microsoft.Extensions.Configuration.IConfiguration configuration)
     {
         _userManager = userManager;
         _tokenService = tokenService;
         _emailService = emailService;
         _unitOfWork = unitOfWork;
+        _configuration = configuration;
     }
 
     public async Task<Result> RegisterAsync(RegisterRequestDto request)
@@ -107,7 +111,14 @@ public class AuthService : IAuthService
         GoogleJsonWebSignature.Payload payload;
         try
         {
-            payload = await GoogleJsonWebSignature.ValidateAsync(request.IdToken);
+            var clientId = _configuration["Authentication:Google:ClientId"];
+            var settings = new GoogleJsonWebSignature.ValidationSettings();
+            if (!string.IsNullOrEmpty(clientId))
+            {
+                settings.Audience = new[] { clientId };
+            }
+            
+            payload = await GoogleJsonWebSignature.ValidateAsync(request.IdToken, settings);
         }
         catch (Exception ex)
         {
@@ -134,6 +145,40 @@ public class AuthService : IAuthService
         }
 
         return Result.Success(await GenerateAuthResponseAsync(user));
+    }
+
+    public async Task<Result<AuthResponseDto>> GoogleCallbackAsync(string code)
+    {
+        var clientId = _configuration["Authentication:Google:ClientId"];
+        var clientSecret = _configuration["Authentication:Google:ClientSecret"];
+        var callbackUrl = _configuration["Authentication:Google:CallbackUrl"];
+
+        using var client = new HttpClient();
+        var requestContent = new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            {"code", code},
+            {"client_id", clientId ?? ""},
+            {"client_secret", clientSecret ?? ""},
+            {"redirect_uri", callbackUrl ?? ""},
+            {"grant_type", "authorization_code"}
+        });
+
+        var response = await client.PostAsync("https://oauth2.googleapis.com/token", requestContent);
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorContent = await response.Content.ReadAsStringAsync();
+            return Result.Failure<AuthResponseDto>(new Error("Auth.GoogleTokenExchangeFailed", $"Failed to exchange code for token."));
+        }
+
+        var json = await response.Content.ReadAsStringAsync();
+        var tokenResponse = JsonDocument.Parse(json);
+        if (!tokenResponse.RootElement.TryGetProperty("id_token", out var idTokenElement))
+        {
+            return Result.Failure<AuthResponseDto>(new Error("Auth.GoogleNoIdToken", "No id_token received from Google."));
+        }
+
+        var idToken = idTokenElement.GetString();
+        return await GoogleLoginAsync(new GoogleLoginRequestDto { IdToken = idToken! });
     }
 
     public async Task<Result<AuthResponseDto>> RefreshTokenAsync(RefreshTokenRequestDto request)

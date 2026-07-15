@@ -10,6 +10,7 @@ public interface IAuthService
     Task<Result> ResendVerificationAsync(ResendVerificationRequestDto request);
     Task<Result<AuthResponseDto>> LoginAsync(LoginRequestDto request);
     Task<Result<AuthResponseDto>> GoogleLoginAsync(GoogleLoginRequestDto request);
+    Task<Result<AuthResponseDto>> GoogleCallbackAsync(string code);
     Task<Result<AuthResponseDto>> RefreshTokenAsync(RefreshTokenRequestDto request);
     Task<Result> LogoutAsync(string userId, string refreshToken);
 }

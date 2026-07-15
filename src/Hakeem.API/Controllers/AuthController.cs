@@ -3,6 +3,7 @@ using Hakeem.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Hakeem.Domain.Common;
+using Microsoft.Extensions.Configuration;
 
 namespace Hakeem.API.Controllers;
 
@@ -11,10 +12,12 @@ namespace Hakeem.API.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
+    private readonly IConfiguration _configuration;
 
-    public AuthController(IAuthService authService)
+    public AuthController(IAuthService authService, IConfiguration configuration)
     {
         _authService = authService;
+        _configuration = configuration;
     }
 
     [HttpPost("register")]
@@ -69,6 +72,31 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> GoogleLogin(GoogleLoginRequestDto request)
     {
         var result = await _authService.GoogleLoginAsync(request);
+        if (result.IsFailure)
+        {
+            return BadRequest(new { Error = result.Error.Message, Code = result.Error.Code });
+        }
+        return Ok(result.Value);
+    }
+
+    [HttpGet("google/login")]
+    public IActionResult GoogleLoginRedirect()
+    {
+        var clientId = _configuration["Authentication:Google:ClientId"];
+        var redirectUri = _configuration["Authentication:Google:CallbackUrl"];
+        var googleAuthUrl = $"https://accounts.google.com/o/oauth2/v2/auth?client_id={clientId}&redirect_uri={redirectUri}&response_type=code&scope=openid%20email%20profile&access_type=offline";
+        return Redirect(googleAuthUrl);
+    }
+
+    [HttpGet("google/callback")]
+    public async Task<IActionResult> GoogleCallback([FromQuery] string code)
+    {
+        if (string.IsNullOrEmpty(code))
+        {
+            return BadRequest(new { Error = "No code provided by Google.", Code = "Auth.GoogleCodeMissing" });
+        }
+
+        var result = await _authService.GoogleCallbackAsync(code);
         if (result.IsFailure)
         {
             return BadRequest(new { Error = result.Error.Message, Code = result.Error.Code });
