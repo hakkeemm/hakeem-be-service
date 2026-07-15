@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Hakeem.API/Hakeem.API.csproj" />
+    <Project Path="src/Hakeem.Application/Hakeem.Application.csproj" />
+    <Project Path="src/Hakeem.Domain/Hakeem.Domain.csproj" />
+    <Project Path="src/Hakeem.Infrastructure/Hakeem.Infrastructure.csproj" />
+  </Folder>
+</Solution>
