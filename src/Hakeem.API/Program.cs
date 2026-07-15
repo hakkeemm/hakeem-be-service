@@ -1,6 +1,7 @@
 using Hakeem.API.Middleware;
 using Hakeem.Application;
 using Hakeem.Infrastructure;
+using Hakeem.Infrastructure.Data;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -55,5 +56,11 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var initializer = scope.ServiceProvider.GetRequiredService<IDbInitializer>();
+    await initializer.InitializeAsync();
+}
 
 app.Run();
