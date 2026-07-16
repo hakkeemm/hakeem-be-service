@@ -13,4 +13,6 @@ public interface IAuthService
     Task<Result<AuthResponseDto>> GoogleCallbackAsync(string code);
     Task<Result<AuthResponseDto>> RefreshTokenAsync(RefreshTokenRequestDto request);
     Task<Result> LogoutAsync(string userId, string refreshToken);
+    Task<Result> ForgotPasswordAsync(string email);
+    Task<Result> ResetPasswordAsync(ResetPasswordRequestDto request);
 }

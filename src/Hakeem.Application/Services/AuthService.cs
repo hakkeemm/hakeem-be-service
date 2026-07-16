@@ -245,6 +245,54 @@ public class AuthService : IAuthService
         return Result.Success();
     }
 
+    public async Task<Result> ForgotPasswordAsync(string email)
+    {
+        var user = await _userManager.FindByEmailAsync(email);
+        if (user == null)
+            return Result.Success(); // Do not reveal user existence
+
+        var random = new Random();
+        var code = random.Next(100000, 999999).ToString();
+        var expireSeconds = _configuration.GetValue<int>("Authentication:VerificationCodeExpirationSeconds", 300);
+        
+        user.VerificationCode = code;
+        user.VerificationCodeExpiresAt = DateTime.UtcNow.AddSeconds(expireSeconds);
+        await _userManager.UpdateAsync(user);
+
+        await _emailService.SendPasswordResetEmailAsync(user.Email!, user.FullName, code);
+
+        return Result.Success();
+    }
+
+    public async Task<Result> ResetPasswordAsync(ResetPasswordRequestDto request)
+    {
+        var user = await _userManager.FindByEmailAsync(request.Email);
+        if (user == null)
+            return Result.Failure(new Error("Auth.UserNotFound", "User not found."));
+
+        if (string.IsNullOrEmpty(user.VerificationCode) || user.VerificationCode != request.Code)
+            return Result.Failure(new Error("Auth.InvalidCode", "Invalid verification code."));
+
+        if (user.VerificationCodeExpiresAt < DateTime.UtcNow)
+            return Result.Failure(new Error("Auth.CodeExpired", "Verification code has expired."));
+
+        var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+        var result = await _userManager.ResetPasswordAsync(user, resetToken, request.NewPassword);
+
+        if (!result.Succeeded)
+        {
+            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+            return Result.Failure(new Error("Auth.ResetPasswordFailed", $"Failed to reset password: {errors}"));
+        }
+
+        // Clear the verification code
+        user.VerificationCode = null;
+        user.VerificationCodeExpiresAt = null;
+        await _userManager.UpdateAsync(user);
+
+        return Result.Success();
+    }
+
     private async Task<AuthResponseDto> GenerateAuthResponseAsync(ApplicationUser user)
     {
         var roles = await _userManager.GetRolesAsync(user);
