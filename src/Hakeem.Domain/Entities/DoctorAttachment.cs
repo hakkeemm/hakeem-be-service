@@ -1,6 +1,8 @@
+using Hakeem.Domain.Common;
+
 namespace Hakeem.Domain.Entities;
 
-public class DoctorAttachment
+public class DoctorAttachment : BaseAuditableEntity
 {
     public Guid Id { get; set; }
     

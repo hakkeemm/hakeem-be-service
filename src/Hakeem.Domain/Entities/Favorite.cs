@@ -1,6 +1,8 @@
+using Hakeem.Domain.Common;
+
 namespace Hakeem.Domain.Entities;
 
-public class Favorite
+public class Favorite : BaseAuditableEntity
 {
     public Guid Id { get; set; }
     
@@ -9,6 +11,4 @@ public class Favorite
     
     public string DoctorId { get; set; } = string.Empty;
     public ApplicationUser Doctor { get; set; } = null!;
-    
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }

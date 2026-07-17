@@ -1,13 +1,22 @@
 using Microsoft.AspNetCore.Identity;
 using Hakeem.Domain.Enums;
 
+using Hakeem.Domain.Common;
+
 namespace Hakeem.Domain.Entities;
 
-public class ApplicationUser : IdentityUser
+public class ApplicationUser : IdentityUser, IAuditableEntity
 {
     public string FullName { get; set; } = string.Empty;
     public UserRole Role { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public string? CreatedById { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+    public string? UpdatedById { get; set; }
+    public bool IsDeleted { get; set; } = false;
+    public DateTime? DeletedAt { get; set; }
+    public string? DeletedById { get; set; }
+
     public string? VerificationCode { get; set; }
     public DateTime? VerificationCodeExpiresAt { get; set; }
     

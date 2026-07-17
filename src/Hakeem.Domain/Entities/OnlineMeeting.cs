@@ -1,6 +1,8 @@
+using Hakeem.Domain.Common;
+
 namespace Hakeem.Domain.Entities;
 
-public class OnlineMeeting
+public class OnlineMeeting : BaseAuditableEntity
 {
     public Guid Id { get; set; }
     public Guid AppointmentId { get; set; }

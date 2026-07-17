@@ -1,6 +1,8 @@
+using Hakeem.Domain.Common;
+
 namespace Hakeem.Domain.Entities;
 
-public class Category
+public class Category : BaseAuditableEntity
 {
     public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;

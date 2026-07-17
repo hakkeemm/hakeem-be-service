@@ -1,6 +1,8 @@
+using Hakeem.Domain.Common;
+
 namespace Hakeem.Domain.Entities;
 
-public class DoctorScheduleException
+public class DoctorScheduleException : BaseAuditableEntity
 {
     public Guid Id { get; set; }
     public string DoctorId { get; set; } = string.Empty;

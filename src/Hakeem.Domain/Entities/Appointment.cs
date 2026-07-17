@@ -1,8 +1,9 @@
 using Hakeem.Domain.Enums;
+using Hakeem.Domain.Common;
 
 namespace Hakeem.Domain.Entities;
 
-public class Appointment
+public class Appointment : BaseAuditableEntity
 {
     public Guid Id { get; set; }
     public string PatientId { get; set; } = string.Empty;
