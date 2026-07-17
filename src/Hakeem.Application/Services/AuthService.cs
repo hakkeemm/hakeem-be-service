@@ -293,6 +293,22 @@ public class AuthService : IAuthService
         return Result.Success();
     }
 
+    public async Task<Result> ChangePasswordAsync(string userId, ChangePasswordRequestDto request)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+            return Result.Failure(new Error("Auth.UserNotFound", "User not found."));
+
+        var result = await _userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
+        if (!result.Succeeded)
+        {
+            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+            return Result.Failure(new Error("Auth.ChangePasswordFailed", $"Failed to change password: {errors}"));
+        }
+
+        return Result.Success();
+    }
+
     private async Task<AuthResponseDto> GenerateAuthResponseAsync(ApplicationUser user)
     {
         var roles = await _userManager.GetRolesAsync(user);

@@ -152,6 +152,22 @@ public class AuthController : ControllerBase
         return Ok();
     }
 
+    [HttpPost("change-password")]
+    [Authorize]
+    public async Task<IActionResult> ChangePassword(ChangePasswordRequestDto request)
+    {
+        var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (userId == null)
+            return Unauthorized();
+
+        var result = await _authService.ChangePasswordAsync(userId, request);
+        if (result.IsFailure)
+        {
+            return BadRequest(new { Error = result.Error.Message, Code = result.Error.Code });
+        }
+        return Ok(new { Message = "Password has been changed successfully." });
+    }
+
     [HttpPost("admin/create-user")]
     [Authorize(Roles = "Admin")]
     public IActionResult CreateUserByAdmin()
