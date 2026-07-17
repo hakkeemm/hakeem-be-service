@@ -45,7 +45,7 @@ public class ApplicationUser : IdentityUser
     public ICollection<ApplicationUser> Assistants { get; set; } = new List<ApplicationUser>();
     public ICollection<DoctorSchedule> Schedules { get; set; } = new List<DoctorSchedule>();
     public ICollection<DoctorScheduleException> ScheduleExceptions { get; set; } = new List<DoctorScheduleException>();
-    public ICollection<AppointmentSlot> AppointmentSlots { get; set; } = new List<AppointmentSlot>();
+
     public ICollection<Appointment> ReceivedAppointments { get; set; } = new List<Appointment>();
     public ICollection<Review> ReceivedReviews { get; set; } = new List<Review>();
     public ICollection<Favorite> FavoritedBy { get; set; } = new List<Favorite>();

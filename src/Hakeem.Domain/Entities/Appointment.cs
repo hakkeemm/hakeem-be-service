@@ -10,7 +10,9 @@ public class Appointment
     
     public string DoctorId { get; set; } = string.Empty;
     public ApplicationUser Doctor { get; set; } = null!;
-    
+    public DateTime AppointmentDate { get; set; }
+    public TimeSpan StartTime { get; set; }
+    public TimeSpan EndTime { get; set; }
     
     public string VisitType { get; set; } = string.Empty; // e.g. "InPerson", "Online"
     public string VisitPurpose { get; set; } = string.Empty; // e.g. "NewVisit", "FollowUp"
