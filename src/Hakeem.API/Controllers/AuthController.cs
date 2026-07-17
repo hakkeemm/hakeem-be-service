@@ -53,6 +53,31 @@ public class AuthController : ControllerBase
         return Ok(new { Message = "Verification email sent if account exists and is not verified." });
     }
 
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword([FromQuery] string email)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+            return BadRequest(new { Error = "Email is required.", Code = "Auth.EmailRequired" });
+
+        var result = await _authService.ForgotPasswordAsync(email);
+        if (result.IsFailure)
+        {
+            return BadRequest(new { Error = result.Error.Message, Code = result.Error.Code });
+        }
+        return Ok(new { Message = "If an account with this email exists, a password reset code has been sent." });
+    }
+
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword(ResetPasswordRequestDto request)
+    {
+        var result = await _authService.ResetPasswordAsync(request);
+        if (result.IsFailure)
+        {
+            return BadRequest(new { Error = result.Error.Message, Code = result.Error.Code });
+        }
+        return Ok(new { Message = "Password has been reset successfully." });
+    }
+
     [HttpPost("login")]
     public async Task<IActionResult> Login(LoginRequestDto request)
     {
