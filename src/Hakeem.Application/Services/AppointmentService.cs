@@ -61,6 +61,121 @@ public class AppointmentService : IAppointmentService
         return appointments.Select(MapToDto);
     }
 
+    public async Task<AppointmentResponseDto> GetAppointmentByIdAsync(Guid id, string patientId)
+    {
+        var appointments = await _unitOfWork.Repository<Appointment>().FindAsync(a => a.Id == id && a.PatientId == patientId);
+        var appointment = appointments.FirstOrDefault();
+
+        if (appointment == null) throw new Exception("Appointment not found or you do not have permission to view it.");
+
+        return MapToDto(appointment);
+    }
+
+    public async Task<bool> CancelAppointmentAsync(Guid id, string patientId)
+    {
+        var appointments = await _unitOfWork.Repository<Appointment>().FindAsync(a => a.Id == id && a.PatientId == patientId);
+        var appointment = appointments.FirstOrDefault();
+
+        if (appointment == null) throw new Exception("Appointment not found or you do not have permission to cancel it.");
+
+        if (appointment.Status == AppointmentStatus.Completed)
+            throw new Exception("Cannot cancel an already completed appointment.");
+
+        appointment.Status = AppointmentStatus.Cancelled;
+        
+        _unitOfWork.Repository<Appointment>().Update(appointment);
+        await _unitOfWork.SaveChangesAsync();
+
+        return true;
+    }
+
+    public async Task<AppointmentResponseDto> RescheduleAppointmentAsync(Guid id, string patientId, RescheduleAppointmentDto dto)
+    {
+        var appointments = await _unitOfWork.Repository<Appointment>().FindAsync(a => a.Id == id && a.PatientId == patientId);
+        var appointment = appointments.FirstOrDefault();
+
+        if (appointment == null) throw new Exception("Appointment not found or you do not have permission to reschedule it.");
+
+        if (appointment.Status == AppointmentStatus.Completed || appointment.Status == AppointmentStatus.Cancelled)
+            throw new Exception("Cannot reschedule a completed or cancelled appointment.");
+
+        appointment.AppointmentDate = dto.NewAppointmentDate;
+        appointment.StartTime = dto.NewStartTime;
+        appointment.EndTime = dto.NewStartTime.Add(TimeSpan.FromMinutes(30));
+        appointment.Status = AppointmentStatus.Rescheduled;
+
+        _unitOfWork.Repository<Appointment>().Update(appointment);
+        await _unitOfWork.SaveChangesAsync();
+
+        return MapToDto(appointment);
+    }
+
+    private async Task<string> GetDoctorIdForStaffAsync(string staffId)
+    {
+        var users = await _unitOfWork.Repository<ApplicationUser>().FindAsync(u => u.Id == staffId);
+        var user = users.FirstOrDefault();
+        if (user == null) throw new Exception("User not found.");
+
+        if (user.Role == UserRole.Doctor) return user.Id;
+        if (user.Role == UserRole.Assistant && !string.IsNullOrEmpty(user.AssignedDoctorId)) return user.AssignedDoctorId;
+
+        throw new Exception("You do not have permission to manage clinic appointments.");
+    }
+
+    public async Task<AppointmentResponseDto> CheckInPatientAsync(Guid id, string staffId)
+    {
+        var doctorId = await GetDoctorIdForStaffAsync(staffId);
+
+        var appointments = await _unitOfWork.Repository<Appointment>().FindAsync(a => a.Id == id && a.DoctorId == doctorId);
+        var appointment = appointments.FirstOrDefault();
+
+        if (appointment == null) throw new Exception("Appointment not found or not assigned to your clinic.");
+
+        if (appointment.Status == AppointmentStatus.Completed || appointment.Status == AppointmentStatus.Cancelled)
+            throw new Exception("Cannot check-in a completed or cancelled appointment.");
+
+        appointment.Status = AppointmentStatus.CheckedIn;
+        _unitOfWork.Repository<Appointment>().Update(appointment);
+        await _unitOfWork.SaveChangesAsync();
+
+        return MapToDto(appointment);
+    }
+
+    public async Task<AppointmentResponseDto> ConfirmAppointmentAsync(Guid id, string staffId)
+    {
+        var doctorId = await GetDoctorIdForStaffAsync(staffId);
+
+        var appointments = await _unitOfWork.Repository<Appointment>().FindAsync(a => a.Id == id && a.DoctorId == doctorId);
+        var appointment = appointments.FirstOrDefault();
+
+        if (appointment == null) throw new Exception("Appointment not found or not assigned to your clinic.");
+
+        if (appointment.Status == AppointmentStatus.Completed || appointment.Status == AppointmentStatus.Cancelled)
+            throw new Exception("Cannot confirm a completed or cancelled appointment.");
+
+        appointment.Status = AppointmentStatus.Confirmed;
+        _unitOfWork.Repository<Appointment>().Update(appointment);
+        await _unitOfWork.SaveChangesAsync();
+
+        return MapToDto(appointment);
+    }
+
+    public async Task<AppointmentResponseDto> CompleteAppointmentAsync(Guid id, string staffId)
+    {
+        var doctorId = await GetDoctorIdForStaffAsync(staffId);
+
+        var appointments = await _unitOfWork.Repository<Appointment>().FindAsync(a => a.Id == id && a.DoctorId == doctorId);
+        var appointment = appointments.FirstOrDefault();
+
+        if (appointment == null) throw new Exception("Appointment not found or not assigned to your clinic.");
+
+        appointment.Status = AppointmentStatus.Completed;
+        _unitOfWork.Repository<Appointment>().Update(appointment);
+        await _unitOfWork.SaveChangesAsync();
+
+        return MapToDto(appointment);
+    }
+
     private static AppointmentResponseDto MapToDto(Appointment appointment)
     {
         return new AppointmentResponseDto
