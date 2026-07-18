@@ -19,6 +19,7 @@ public class AuthController : ControllerBase
         _authService = authService;
         _configuration = configuration;
     }
+    
 
     [HttpPost("register")]
     public async Task<IActionResult> Register(RegisterRequestDto request)
