@@ -3,6 +3,7 @@ using System;
 using Hakeem.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Hakeem.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(HakeemDbContext))]
-    partial class HakeemDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260717221703_Add-appointment-and-related-tables")]
+    partial class Addappointmentandrelatedtables
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -43,7 +46,7 @@ namespace Hakeem.Infrastructure.Data.Migrations
                         .HasColumnType("text");
 
                     b.Property<decimal?>("AverageRating")
-                        .HasColumnType("decimal(3,2)");
+                        .HasColumnType("numeric");
 
                     b.Property<string>("BloodType")
                         .HasColumnType("text");
@@ -56,7 +59,7 @@ namespace Hakeem.Infrastructure.Data.Migrations
                         .HasColumnType("text");
 
                     b.Property<decimal?>("ConsultationFee")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("numeric");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -81,7 +84,7 @@ namespace Hakeem.Infrastructure.Data.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<decimal?>("FollowUpFee")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("numeric");
 
                     b.Property<string>("FullName")
                         .IsRequired()
@@ -109,7 +112,7 @@ namespace Hakeem.Infrastructure.Data.Migrations
                         .HasColumnType("double precision");
 
                     b.Property<decimal?>("NewVisitFee")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("numeric");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
@@ -132,7 +135,7 @@ namespace Hakeem.Infrastructure.Data.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<decimal?>("QuickVisitFee")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("numeric");
 
                     b.Property<int?>("ReviewsCount")
                         .HasColumnType("integer");
@@ -213,7 +216,7 @@ namespace Hakeem.Infrastructure.Data.Migrations
                         .HasColumnType("interval");
 
                     b.Property<decimal>("Fee")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("numeric");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
@@ -237,11 +240,13 @@ namespace Hakeem.Infrastructure.Data.Migrations
                     b.Property<string>("UpdatedById")
                         .HasColumnType("text");
 
-                    b.Property<int>("VisitPurpose")
-                        .HasColumnType("integer");
+                    b.Property<string>("VisitPurpose")
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.Property<int>("VisitType")
-                        .HasColumnType("integer");
+                    b.Property<string>("VisitType")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
