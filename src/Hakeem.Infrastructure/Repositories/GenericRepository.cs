@@ -1,6 +1,7 @@
 using Hakeem.Domain.Interfaces;
 using Hakeem.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace Hakeem.Infrastructure.Repositories;
 
@@ -23,6 +24,11 @@ public class GenericRepository<T> : IRepository<T> where T : class
     public async Task<IEnumerable<T>> GetAllAsync()
     {
         return await _dbSet.ToListAsync();
+    }
+
+    public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate)
+    {
+        return await _dbSet.Where(predicate).ToListAsync();
     }
 
     public async Task AddAsync(T entity)

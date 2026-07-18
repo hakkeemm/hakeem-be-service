@@ -2,8 +2,6 @@ using Hakeem.Application.DTOs.Auth;
 using Hakeem.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Hakeem.Domain.Common;
-using Microsoft.Extensions.Configuration;
 
 namespace Hakeem.API.Controllers;
 

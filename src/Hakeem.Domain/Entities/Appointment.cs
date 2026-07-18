@@ -15,8 +15,8 @@ public class Appointment : BaseAuditableEntity
     public TimeSpan StartTime { get; set; }
     public TimeSpan EndTime { get; set; }
     
-    public string VisitType { get; set; } = string.Empty; // e.g. "InPerson", "Online"
-    public string VisitPurpose { get; set; } = string.Empty; // e.g. "NewVisit", "FollowUp"
+    public VisitType VisitType { get; set; } = VisitType.InPerson;
+    public VisitPurpose VisitPurpose { get; set; } = VisitPurpose.NewVisit;
     public AppointmentStatus Status { get; set; } = AppointmentStatus.Booked;
 
     public decimal Fee { get; set; }

@@ -18,5 +18,19 @@ public class AppointmentConfiguration : IEntityTypeConfiguration<Appointment>
             .HasForeignKey(a => a.DoctorId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // Configure Decimal precision for fees
+        builder.Property(a => a.Fee)
+            .HasColumnType("decimal(18,2)");
+
+        // Explicitly enforce that Enums are stored as Integers (Numbers)
+        builder.Property(a => a.VisitType)
+            .HasConversion<int>();
+
+        builder.Property(a => a.VisitPurpose)
+            .HasConversion<int>();
+
+        builder.Property(a => a.Status)
+            .HasConversion<int>();
+
     }
 }
