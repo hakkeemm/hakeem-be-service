@@ -11,7 +11,7 @@ public class HakeemDbContext : IdentityDbContext<ApplicationUser>
     }
 
     public DbSet<RefreshToken> RefreshTokens { get; set; }
-    public DbSet<Category> Specialties { get; set; }
+    public DbSet<Category> Categories { get; set; }
     public DbSet<DoctorSchedule> DoctorSchedules { get; set; }
     public DbSet<DoctorScheduleException> DoctorScheduleExceptions { get; set; }
     public DbSet<Appointment> Appointments { get; set; }

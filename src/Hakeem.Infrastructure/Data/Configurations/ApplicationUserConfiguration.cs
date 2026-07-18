@@ -8,10 +8,9 @@ public class ApplicationUserConfiguration : IEntityTypeConfiguration<Application
 {
     public void Configure(EntityTypeBuilder<ApplicationUser> builder)
     {
-        builder.HasOne(u => u.Specialty)
-            .WithMany(s => s.Doctors)
-            .HasForeignKey(u => u.SpecialtyId)
-            .OnDelete(DeleteBehavior.SetNull);
+        builder.HasMany(u => u.Categories)
+            .WithMany(c => c.Doctors)
+            .UsingEntity(j => j.ToTable("DoctorCategories"));
 
         builder.HasOne(u => u.AssignedDoctor)
             .WithMany(d => d.Assistants)

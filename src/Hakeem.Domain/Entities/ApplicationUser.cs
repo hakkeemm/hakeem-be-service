@@ -21,8 +21,7 @@ public class ApplicationUser : IdentityUser, IAuditableEntity
     public DateTime? VerificationCodeExpiresAt { get; set; }
     
     // Doctor Specific Fields
-    public Guid? SpecialtyId { get; set; }
-    public Category? Specialty { get; set; }
+    public ICollection<Category> Categories { get; set; } = new List<Category>();
     
     public int? YearsExperience { get; set; }
     public decimal? NewVisitFee { get; set; }
