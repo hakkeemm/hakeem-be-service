@@ -122,7 +122,7 @@ public class AppointmentService : IAppointmentService
         throw new Exception("You do not have permission to manage clinic appointments.");
     }
 
-    public async Task<AppointmentResponseDto> CheckInPatientAsync(Guid id, string staffId)
+    public async Task<AppointmentResponseDto> UpdateAppointmentStatusAsync(Guid id, string staffId, AppointmentStatus newStatus)
     {
         var doctorId = await GetDoctorIdForStaffAsync(staffId);
 
@@ -132,44 +132,13 @@ public class AppointmentService : IAppointmentService
         if (appointment == null) throw new Exception("Appointment not found or not assigned to your clinic.");
 
         if (appointment.Status == AppointmentStatus.Completed || appointment.Status == AppointmentStatus.Cancelled)
-            throw new Exception("Cannot check-in a completed or cancelled appointment.");
+            throw new Exception("Cannot change the status of a completed or cancelled appointment.");
 
-        appointment.Status = AppointmentStatus.CheckedIn;
-        _unitOfWork.Repository<Appointment>().Update(appointment);
-        await _unitOfWork.SaveChangesAsync();
+        // Optional: Ensure staff can only set specific valid statuses (e.g. they shouldn't set it to 'Booked' manually)
+        if (newStatus == AppointmentStatus.Booked)
+            throw new Exception("Cannot manually set status back to Booked.");
 
-        return MapToDto(appointment);
-    }
-
-    public async Task<AppointmentResponseDto> ConfirmAppointmentAsync(Guid id, string staffId)
-    {
-        var doctorId = await GetDoctorIdForStaffAsync(staffId);
-
-        var appointments = await _unitOfWork.Repository<Appointment>().FindAsync(a => a.Id == id && a.DoctorId == doctorId);
-        var appointment = appointments.FirstOrDefault();
-
-        if (appointment == null) throw new Exception("Appointment not found or not assigned to your clinic.");
-
-        if (appointment.Status == AppointmentStatus.Completed || appointment.Status == AppointmentStatus.Cancelled)
-            throw new Exception("Cannot confirm a completed or cancelled appointment.");
-
-        appointment.Status = AppointmentStatus.Confirmed;
-        _unitOfWork.Repository<Appointment>().Update(appointment);
-        await _unitOfWork.SaveChangesAsync();
-
-        return MapToDto(appointment);
-    }
-
-    public async Task<AppointmentResponseDto> CompleteAppointmentAsync(Guid id, string staffId)
-    {
-        var doctorId = await GetDoctorIdForStaffAsync(staffId);
-
-        var appointments = await _unitOfWork.Repository<Appointment>().FindAsync(a => a.Id == id && a.DoctorId == doctorId);
-        var appointment = appointments.FirstOrDefault();
-
-        if (appointment == null) throw new Exception("Appointment not found or not assigned to your clinic.");
-
-        appointment.Status = AppointmentStatus.Completed;
+        appointment.Status = newStatus;
         _unitOfWork.Repository<Appointment>().Update(appointment);
         await _unitOfWork.SaveChangesAsync();
 

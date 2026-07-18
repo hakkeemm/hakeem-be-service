@@ -31,8 +31,8 @@ public class ClinicAppointmentsController : ControllerBase
             var staffId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(staffId)) return Unauthorized();
 
-            // Note: Add logic in service to fetch based on staffId mapping to DoctorId
-            return Ok(new { message = "Schedule endpoint needs specific fetch logic" });
+            var result = await _scheduleService.GetClinicScheduleAsync(staffId);
+            return Ok(result);
         }
         catch (Exception ex)
         {
@@ -71,49 +71,15 @@ public class ClinicAppointmentsController : ControllerBase
         }
     }
 
-    [HttpPut("{id}/check-in")]
-    public async Task<IActionResult> CheckInPatient(Guid id)
+    [HttpPut("{id}/status")]
+    public async Task<IActionResult> UpdateAppointmentStatus(Guid id, [FromBody] UpdateAppointmentStatusDto dto)
     {
         try
         {
             var staffId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(staffId)) return Unauthorized();
 
-            var result = await _appointmentService.CheckInPatientAsync(id, staffId);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-    }
-
-    [HttpPut("{id}/confirm")]
-    public async Task<IActionResult> ConfirmAppointment(Guid id)
-    {
-        try
-        {
-            var staffId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(staffId)) return Unauthorized();
-
-            var result = await _appointmentService.ConfirmAppointmentAsync(id, staffId);
-            return Ok(result);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-    }
-
-    [HttpPut("{id}/complete")]
-    public async Task<IActionResult> CompleteAppointment(Guid id)
-    {
-        try
-        {
-            var staffId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(staffId)) return Unauthorized();
-
-            var result = await _appointmentService.CompleteAppointmentAsync(id, staffId);
+            var result = await _appointmentService.UpdateAppointmentStatusAsync(id, staffId, dto.Status);
             return Ok(result);
         }
         catch (Exception ex)

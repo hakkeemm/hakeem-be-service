@@ -64,4 +64,19 @@ public class DoctorScheduleService : IDoctorScheduleService
             SlotDurationMinutes = s.SlotDurationMinutes
         });
     }
+
+    public async Task<IEnumerable<DoctorScheduleResponseDto>> GetClinicScheduleAsync(string staffId)
+    {
+        var users = await _unitOfWork.Repository<ApplicationUser>().FindAsync(u => u.Id == staffId);
+        var user = users.FirstOrDefault();
+
+        if (user == null) throw new Exception("User not found.");
+
+        string doctorId = user.Role == Hakeem.Domain.Enums.UserRole.Doctor ? user.Id : user.AssignedDoctorId!;
+        
+        if (string.IsNullOrEmpty(doctorId))
+            throw new Exception("No doctor assigned to this schedule context.");
+
+        return await GetDoctorSchedulesAsync(doctorId);
+    }
 }
