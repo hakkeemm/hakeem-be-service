@@ -14,6 +14,7 @@ public static class DependencyInjection
         services.AddScoped<IAppointmentService, AppointmentService>();
         services.AddScoped<IDoctorScheduleService, DoctorScheduleService>();
         services.AddScoped<ICategoryService, CategoryService>();
+        services.AddScoped<IDoctorProfileService, DoctorProfileService>();
         services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
         
         return services;
