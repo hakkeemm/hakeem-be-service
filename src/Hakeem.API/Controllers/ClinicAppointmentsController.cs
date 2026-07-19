@@ -23,6 +23,23 @@ public class ClinicAppointmentsController : ControllerBase
         _appointmentService = appointmentService;
     }
 
+    [HttpGet]
+    public async Task<IActionResult> GetAllAppointments([FromQuery] Hakeem.Application.DTOs.Appointment.AppointmentFilterDto filter)
+    {
+        try
+        {
+            var staffId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(staffId)) return Unauthorized();
+
+            var result = await _appointmentService.GetClinicAppointmentsAsync(staffId, filter);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
     [HttpGet("schedule")]
     public async Task<IActionResult> GetClinicSchedule()
     {

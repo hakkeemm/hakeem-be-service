@@ -61,6 +61,37 @@ public class AppointmentService : IAppointmentService
         return appointments.Select(MapToDto);
     }
 
+    public async Task<Hakeem.Application.DTOs.Common.PaginatedList<AppointmentResponseDto>> GetClinicAppointmentsAsync(string staffId, Hakeem.Application.DTOs.Appointment.AppointmentFilterDto filter)
+    {
+        var doctorId = await GetDoctorIdForStaffAsync(staffId);
+        
+        // Ensure we match purely on date, disregarding the time part of the Date property if supplied
+        var dateFilter = filter.Date?.Date;
+
+        var appointments = await _unitOfWork.Repository<Appointment>().FindAsync(a => 
+            a.DoctorId == doctorId &&
+            (!filter.Status.HasValue || a.Status == filter.Status.Value) &&
+            (!dateFilter.HasValue || a.AppointmentDate.Date == dateFilter.Value)
+        );
+        
+        // Sort chronologically
+        var sortedAppointments = appointments
+            .OrderBy(a => a.AppointmentDate)
+            .ThenBy(a => a.StartTime)
+            .ToList();
+
+        var totalCount = sortedAppointments.Count;
+        
+        // Apply Pagination
+        var pagedItems = sortedAppointments
+            .Skip((filter.PageNumber - 1) * filter.PageSize)
+            .Take(filter.PageSize)
+            .Select(MapToDto)
+            .ToList();
+
+        return new Hakeem.Application.DTOs.Common.PaginatedList<AppointmentResponseDto>(pagedItems, totalCount, filter.PageNumber, filter.PageSize);
+    }
+
     public async Task<AppointmentResponseDto> GetAppointmentByIdAsync(Guid id, string patientId)
     {
         var appointments = await _unitOfWork.Repository<Appointment>().FindAsync(a => a.Id == id && a.PatientId == patientId);
